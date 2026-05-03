@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Algebra for AI 01 &mdash; Vectors &amp; Vector Spaces</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a; --bg-card: #0d1117; --bg-code: #161b22;
+            --text-primary: #e6edf3; --text-secondary: #8b949e;
+            --accent: #a78bfa; --accent-dim: #a78bfa44; --accent-glow: #a78bfa33;
+            --accent-2: #f472b6; --accent-3: #fbbf24; --accent-4: #34d399;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 17px; line-height: 1.7; overflow-x: hidden; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem 1.5rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 700px; height: 600px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 640px; margin-bottom: 2rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-dim); white-space: nowrap; }
+        .pipeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.25rem; margin-bottom: 1rem; max-width: var(--max-width); }
+        .pipeline-step { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.3rem 0.7rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); white-space: nowrap; }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide { min-height: 100vh; max-width: var(--max-width); margin: 0 auto; padding: 4rem 1.5rem; position: relative; display: flex; flex-direction: column; justify-content: center; }
+        .slide-number { font-family: var(--font-display); font-size: 5rem; font-weight: 700; color: var(--accent-dim); position: absolute; top: 2rem; right: 1.5rem; line-height: 1; user-select: none; }
+        .slide h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--accent); margin-bottom: 1.5rem; line-height: 1.25; }
+        .slide h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code { background: var(--bg-code); padding: 0.1rem 0.35rem; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85em; color: var(--accent); }
+        .table-wrap { overflow-x: auto; margin: 1.25rem 0; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: var(--bg-code); color: var(--accent); font-weight: 600; text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-family: var(--font-display); white-space: nowrap; }
+        td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .diagram-grid { display: grid; gap: 0.75rem; margin: 1.5rem 0; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-panel { padding: 1rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel.r { border-left: 3px solid var(--accent-2); }
+        .diagram-panel.y { border-left: 3px solid var(--accent-3); }
+        .diagram-panel.g { border-left: 3px solid var(--accent-4); }
+        .diagram-panel h4 { font-family: var(--font-display); font-size: 1rem; color: var(--accent); margin-bottom: 0.5rem; }
+        .diagram-panel.r h4 { color: var(--accent-2); }
+        .diagram-panel.y h4 { color: var(--accent-3); }
+        .diagram-panel.g h4 { color: var(--accent-4); }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.9rem; }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+        .callout p { margin-bottom: 0; }
+        .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .quote { font-family: var(--font-display); font-size: 1.1rem; font-style: italic; color: var(--text-primary); padding: 1rem 1.5rem; border-left: 3px solid var(--accent); background: var(--bg-card); margin: 1.25rem 0; border-radius: 0 8px 8px 0; }
+        .quote .attr { display: block; margin-top: 0.5rem; font-style: normal; font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono); }
+        .canvas-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 1.25rem 0; overflow-x: auto; }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .control-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.25rem 0; }
+        .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .control-row label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); min-width: 130px; }
+        .control-row input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--accent); }
+        .control-row select, .control-row input[type="number"] { background: var(--bg-code); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.3rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; }
+        .control-row .val { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 80px; text-align: right; }
+        .btn { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.4rem 0.9rem; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; transition: background 0.15s ease; }
+        .btn:hover { background: rgba(167,139,250,0.25); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary { background: var(--bg-code); color: var(--text-secondary); border-color: var(--border); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; }
+        .metric { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; text-align: center; }
+        .metric .metric-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+        .metric .metric-value { font-family: var(--font-display); font-size: 1.25rem; color: var(--accent); font-weight: 600; margin-top: 0.2rem; }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li { counter-increment: contents; padding: 0.6rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before { content: counter(contents, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 2rem; }
+        .contents-list a { color: var(--text-primary); text-decoration: none; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid var(--border); max-width: var(--max-width); margin: 0 auto; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .katex { color: var(--text-primary); }
+        .katex-display { margin: 1rem 0; overflow-x: auto; overflow-y: hidden; }
+        @media (max-width: 640px) {
+            .slide { padding: 3rem 1rem; min-height: auto; }
+            .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
+            .slide h2 { font-size: 1.5rem; }
+            .diagram-grid.cols-2, .diagram-grid.cols-3 { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+            table { font-size: 0.78rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">Linear Algebra for AI &mdash; Presentation 01</div>
+    <h1>Vectors &amp; <span class="accent">Vector Spaces</span></h1>
+    <p class="subtitle">The tiniest object in machine learning is the vector. Get this right and every later piece &mdash; embeddings, attention, projections &mdash; falls into place.</p>
+
+    <div class="tags">
+        <span class="tag">vector</span><span class="tag">span</span>
+        <span class="tag">basis</span><span class="tag">independence</span>
+        <span class="tag">dimension</span><span class="tag">coordinates</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">arrow in space</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">tuple of numbers</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">element of vector space</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">embedding</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">token state</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Three Ways to Look at a Vector</a></li>
+        <li><a href="#slide-02">Vector Operations</a></li>
+        <li><a href="#slide-03">What's a Vector Space?</a></li>
+        <li><a href="#slide-04">Linear Combinations &amp; Span</a></li>
+        <li><a href="#slide-05">Linear Independence</a></li>
+        <li><a href="#slide-06">Basis &amp; Dimension</a></li>
+        <li><a href="#slide-07">Coordinates &amp; Change of Basis</a></li>
+        <li><a href="#slide-08">Subspaces</a></li>
+        <li><a href="#slide-09">Interactive: 2D Vector Playground</a></li>
+        <li><a href="#slide-10">From R&sup2; to R&#x1D451;: the Embedding Picture</a></li>
+        <li><a href="#slide-11">Cheat Sheet</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Three Ways to Look at a Vector</h2>
+    <p>Throughout the series we will write a vector as a column of numbers. But the same object has three useful interpretations, and a working ML engineer flips between them dozens of times in a day.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>1. An arrow</h4>
+            <p>An arrow from the origin to a point. Length and direction matter; <em>position</em> in the plane doesn't (it always starts at 0). This is the picture for $\mathbb{R}^2$ and $\mathbb{R}^3$.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>2. A tuple of numbers</h4>
+            <p>$\mathbf{v} = (v_1, v_2, \ldots, v_n)$. The picture that scales: a 4096-dimensional vector is just a list of 4096 floats. Most of ML lives here.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>3. A point in a space</h4>
+            <p>An element of an abstract vector space &mdash; a thing you can add to other things and scale by numbers, with no commitment to what the things "are". This view is what lets us put words, images and audio in the same room.</p>
+        </div>
+    </div>
+
+    <p>Modern ML moves between all three. An embedding is an arrow when you draw a t-SNE plot; it's a tuple when you call <code>torch.matmul</code>; and it's a point in an abstract space when you reason about norm, distance, projection, similarity.</p>
+
+    <div class="callout">
+        <div class="callout-label">Convention used throughout this series</div>
+        <p>Bold lowercase letters $\mathbf{v}, \mathbf{x}, \mathbf{w}$ are vectors, written as columns. Capital letters $A, B, W$ are matrices. Greek lowercase $\alpha, \beta, \lambda$ are scalars. We work over the real numbers $\mathbb{R}$ except where noted &mdash; complex vectors appear only briefly in the eigen / SVD decks.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Vector Operations</h2>
+    <p>Two operations and one rule. Together they generate all of linear algebra.</p>
+
+    <h3>Addition</h3>
+    <p>$$\mathbf{u} + \mathbf{v} = (u_1 + v_1,\, u_2 + v_2,\, \ldots,\, u_n + v_n)$$</p>
+    <p>Geometrically: place the tail of $\mathbf{v}$ at the head of $\mathbf{u}$; the resultant is the arrow from the origin to the new tip. Commutative, associative, has identity $\mathbf{0}$ and inverses $-\mathbf{v}$.</p>
+
+    <h3>Scalar multiplication</h3>
+    <p>$$\alpha \mathbf{v} = (\alpha v_1,\, \alpha v_2,\, \ldots,\, \alpha v_n)$$</p>
+    <p>Geometrically: stretch $\mathbf{v}$ by the factor $\alpha$ (and flip if $\alpha &lt; 0$). Direction is preserved or reversed; never rotated to anything else.</p>
+
+    <h3>Linearity, the one rule</h3>
+    <p>The two operations <em>distribute</em>: $\alpha(\mathbf{u}+\mathbf{v}) = \alpha\mathbf{u} + \alpha\mathbf{v}$ and $(\alpha+\beta)\mathbf{v} = \alpha\mathbf{v}+\beta\mathbf{v}$. Out of this single property the rest of linear algebra falls out.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why this matters for transformers</div>
+        <p>Every operation inside an attention block &mdash; QKV projection, attention-weighted average, output projection, residual add &mdash; is built from exactly these two operations. The non-linearity (softmax, GELU) is intentionally a thin sandwich between long stretches of pure linear algebra. Understand vectors and matrices and you understand 95% of the FLOPs.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>What's a Vector Space?</h2>
+    <p>A <strong>vector space</strong> is any set $V$ together with two operations &mdash; addition $+ : V \times V \to V$ and scalar multiplication $\cdot : \mathbb{R} \times V \to V$ &mdash; that satisfy <strong>eight axioms</strong>: associativity and commutativity of addition, an additive identity $\mathbf{0}$, additive inverses, and four scalar-multiplication axioms (associativity, identity 1, and the two distributive laws).</p>
+
+    <p>If you can add two things and scale them by real numbers, and the obvious algebraic identities hold, you have a vector space. The axioms are deliberately weak so that very different objects qualify.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Vector space</th><th>"Vector" is&hellip;</th><th>Why it matters in ML</th></tr></thead>
+            <tbody>
+                <tr><td>$\mathbb{R}^n$</td><td>An $n$-tuple of reals</td><td>Every embedding, activation, weight column.</td></tr>
+                <tr><td>$\mathbb{R}^{m\times n}$</td><td>An $m\times n$ matrix of reals</td><td>Weight matrices, attention scores, batched activations &mdash; flattened, an element of $\mathbb{R}^{mn}$.</td></tr>
+                <tr><td>Polynomials of degree $\le n$</td><td>A polynomial $p(t) = a_0 + a_1 t + \cdots + a_n t^n$</td><td>Spline bases, kernel features, classical positional encodings.</td></tr>
+                <tr><td>Continuous functions $C([0,1])$</td><td>A function $f : [0,1] \to \mathbb{R}$</td><td>Idealised embedding spaces; Fourier theory; the right setting for "infinite-dimensional" attention kernels.</td></tr>
+                <tr><td>Random variables (with finite variance)</td><td>A random variable</td><td>Inner product = covariance; orthogonality = uncorrelated. Useful for whitening, PCA, denoising-diffusion analysis.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Why the abstraction</div>
+        <p>The eight axioms guarantee that <em>any theorem you prove from them alone holds in every example</em>. Define "basis" once and you have basis for $\mathbb{R}^n$, basis for polynomials (the monomials $1, t, t^2, \ldots$), basis for the Fourier function space (sines and cosines), and basis for the embedding space of a transformer &mdash; all at once. This is why the vocabulary "basis", "span", "rank" sounds out of proportion to its content: it's leverage that pays off across many domains.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Linear Combinations &amp; Span</h2>
+    <p>A <strong>linear combination</strong> of vectors $\mathbf{v}_1, \ldots, \mathbf{v}_k$ with coefficients $\alpha_1, \ldots, \alpha_k$ is</p>
+    <p>$$\alpha_1 \mathbf{v}_1 + \alpha_2 \mathbf{v}_2 + \cdots + \alpha_k \mathbf{v}_k.$$</p>
+    <p>The <strong>span</strong> of a set of vectors is the set of all linear combinations of them:</p>
+    <p>$$\mathrm{span}(\mathbf{v}_1, \ldots, \mathbf{v}_k) = \{\,\alpha_1 \mathbf{v}_1 + \cdots + \alpha_k \mathbf{v}_k : \alpha_i \in \mathbb{R}\,\}.$$</p>
+
+    <h3>Geometric pictures in low dimension</h3>
+    <ul>
+        <li><strong>One non-zero vector in $\mathbb{R}^2$.</strong> Span = line through the origin.</li>
+        <li><strong>Two non-parallel vectors in $\mathbb{R}^2$.</strong> Span = the whole plane $\mathbb{R}^2$.</li>
+        <li><strong>Two parallel vectors in $\mathbb{R}^2$.</strong> Span = a line again. The second vector adds nothing.</li>
+        <li><strong>Three generic vectors in $\mathbb{R}^3$.</strong> Span = all of $\mathbb{R}^3$.</li>
+        <li><strong>Three coplanar vectors in $\mathbb{R}^3$.</strong> Span = a plane. The third was redundant.</li>
+    </ul>
+
+    <p>Span is the answer to the question: <em>what set of points can I reach by mixing these vectors?</em> The answer is always a subspace through the origin (a line, plane, hyperplane, or the whole space).</p>
+
+    <div class="callout">
+        <div class="callout-label">Span in ML</div>
+        <p>The span of the rows of a weight matrix $W$ is the <em>range</em> of the linear map $\mathbf{x} \mapsto W^\top\mathbf{x}$. Equivalently, the span of the <em>columns</em> of $W$ is the set of outputs of the layer $\mathbf{x} \mapsto W\mathbf{x}$. A low-rank $W$ has a small-dimensional column span &mdash; only a thin slice of output space is reachable. This is the foundation of LoRA (deck 07).</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Linear Independence</h2>
+    <p>A set $\{\mathbf{v}_1, \ldots, \mathbf{v}_k\}$ is <strong>linearly independent</strong> if the only way to write the zero vector as a linear combination is with all coefficients zero:</p>
+    <p>$$\alpha_1 \mathbf{v}_1 + \cdots + \alpha_k \mathbf{v}_k = \mathbf{0} \iff \alpha_1 = \cdots = \alpha_k = 0.$$</p>
+    <p>Otherwise the set is <strong>linearly dependent</strong>: some non-trivial combination of them is zero, which is the same as saying at least one of them is a linear combination of the others. That one can be dropped without losing any span.</p>
+
+    <h3>Three equivalent characterisations</h3>
+    <ol>
+        <li><strong>Algebraic.</strong> The only solution to $\alpha_1 \mathbf{v}_1 + \cdots + \alpha_k \mathbf{v}_k = \mathbf{0}$ is the trivial one.</li>
+        <li><strong>Combinatorial.</strong> No vector in the set is a linear combination of the others.</li>
+        <li><strong>Geometric.</strong> Each new vector points in a genuinely <em>new direction</em> not already reachable from the previous ones.</li>
+    </ol>
+
+    <h3>Why linear dependence is everywhere in ML</h3>
+    <p>Real data lies, approximately, on low-dimensional surfaces inside very high-dimensional spaces. The pixels of an MNIST digit are nominally a 784-dimensional vector, but the set of all real handwritten digits forms a much smaller-dimensional <em>manifold</em>. The columns of the matrix you'd build by stacking 60,000 MNIST digits are highly linearly dependent &mdash; this is exactly what PCA (deck 06) exploits, and exactly why a low-rank LoRA adapter (deck 07) is enough.</p>
+
+    <div class="callout">
+        <div class="callout-label">A tiny test</div>
+        <p>Are $(1,2)$, $(2,4)$, $(3,5)$ linearly independent in $\mathbb{R}^2$? <em>No</em> &mdash; there are three vectors in a 2-dimensional space, so any three of them must be linearly dependent. (Two of them might be, e.g. $(1,2)$ and $(2,4)$ are scalar multiples.) The maximum size of a linearly independent set in $\mathbb{R}^n$ is $n$.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Basis &amp; Dimension</h2>
+    <p>A <strong>basis</strong> of a vector space $V$ is a set $\{\mathbf{e}_1, \ldots, \mathbf{e}_n\}$ that is</p>
+    <ul>
+        <li><strong>linearly independent</strong> (no redundancy), and</li>
+        <li><strong>spans $V$</strong> (no gaps).</li>
+    </ul>
+
+    <p>Equivalently: every $\mathbf{v} \in V$ can be written <em>uniquely</em> as $\mathbf{v} = c_1\mathbf{e}_1 + \cdots + c_n\mathbf{e}_n$. The numbers $c_i$ are the <strong>coordinates</strong> of $\mathbf{v}$ in the basis.</p>
+
+    <h3>The dimension theorem</h3>
+    <p>Every basis of $V$ has the same number of elements. That number is the <strong>dimension</strong> of $V$, written $\dim V$. (Proof sketch: if you had a basis of size $m$ and another of size $n &gt; m$, you'd be expressing $n$ linearly independent vectors as combinations of $m$ vectors, contradicting linear independence.)</p>
+
+    <h3>Standard bases you should know cold</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>$\mathbb{R}^n$ &mdash; the canonical basis</h4>
+            <p>$\mathbf{e}_1 = (1, 0, \ldots, 0)$, $\mathbf{e}_2 = (0, 1, 0, \ldots, 0)$, &hellip;, $\mathbf{e}_n = (0, \ldots, 0, 1)$. Each is a 1 in one slot, zeros everywhere else. Coordinates in this basis are just the components.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Polynomials of degree $\le n$</h4>
+            <p>Monomial basis: $1, t, t^2, \ldots, t^n$. Dimension $n+1$. Coordinates are the polynomial coefficients.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">A transformer's hidden basis</div>
+        <p>The hidden state in Llama-3-70B is a 8192-dimensional vector. Its "basis" is the columns of whatever last writes into the residual stream &mdash; output projections from attention heads, output projections from FFNs. <em>Mechanistic interpretability</em> is, in part, the study of which directions in this 8192-dim space carry which information &mdash; an attempt to recover a meaningful basis from the standard one the GPU happens to use.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Coordinates &amp; Change of Basis</h2>
+    <p>A vector exists independently of any basis &mdash; it's the arrow / abstract point. Its <em>coordinates</em>, on the other hand, depend on the basis you chose. Switching basis is a fundamental operation in ML: PCA, whitening, ICA and the rotations inside RoPE are all changes of basis.</p>
+
+    <h3>The change-of-basis matrix</h3>
+    <p>If $B = (\mathbf{b}_1, \ldots, \mathbf{b}_n)$ is the matrix whose columns are a new basis, and $\mathbf{v}$ has new-basis coordinates $\mathbf{c}$, then the standard-basis coordinates of $\mathbf{v}$ are</p>
+    <p>$$\mathbf{v} = B \mathbf{c}.$$</p>
+    <p>Equivalently, given $\mathbf{v}$ in the standard basis, its new-basis coordinates are $\mathbf{c} = B^{-1} \mathbf{v}$.</p>
+
+    <h3>Why this is so important</h3>
+    <p>A linear map looks completely different in different bases. A 2D rotation matrix is</p>
+    <p>$$R_\theta = \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix}$$</p>
+    <p>in the standard basis. Change to a basis aligned with the eigenvectors and the same map becomes <em>diagonal</em> (it's a complex diagonal $\mathrm{diag}(e^{i\theta}, e^{-i\theta})$). Same map, different appearance &mdash; the choice of basis is the storyteller. Eigendecomposition (deck 06) and SVD (deck 07) are precisely the search for the basis that makes a matrix as simple as possible.</p>
+
+    <div class="callout">
+        <div class="callout-label">Tokenisers and bases</div>
+        <p>An embedding lookup is a coordinate mapping: token id $i \mapsto \mathbf{e}_i$ in some chosen basis $E$. Any rotation $R$ of the embedding space gives an equivalent model with weights $RE, R\,W_Q, R\,W_K, \ldots$ &mdash; a phenomenon used in mechanistic interpretability to argue that "directions, not neurons" are the meaningful unit.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Subspaces</h2>
+    <p>A <strong>subspace</strong> $U$ of $V$ is a non-empty subset that is itself a vector space &mdash; closed under addition and scaling. Equivalently, $U$ is a subspace iff for all $\mathbf{u}, \mathbf{u}' \in U$ and $\alpha \in \mathbb{R}$:</p>
+    <ul>
+        <li>$\mathbf{u} + \mathbf{u}' \in U$ (closed under addition),</li>
+        <li>$\alpha \mathbf{u} \in U$ (closed under scaling).</li>
+    </ul>
+    <p>From these two it follows that $\mathbf{0} \in U$ (take $\alpha = 0$). Every subspace passes through the origin.</p>
+
+    <h3>Examples that recur</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Lines and planes through 0</h4>
+            <p>In $\mathbb{R}^3$ the only subspaces are $\{\mathbf{0}\}$, lines through $\mathbf{0}$, planes through $\mathbf{0}$, and all of $\mathbb{R}^3$. A line that doesn't pass through the origin is not a subspace &mdash; the zero vector isn't on it.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Range &amp; null space of $A$</h4>
+            <p>For a matrix $A : \mathbb{R}^n \to \mathbb{R}^m$, the <em>range</em> $\{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^n\} \subseteq \mathbb{R}^m$ and the <em>null space</em> $\{\mathbf{x} : A\mathbf{x} = \mathbf{0}\} \subseteq \mathbb{R}^n$ are both subspaces. Deck 02 develops these.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Affine subspaces are not subspaces</div>
+        <p>An <em>affine subspace</em> is a subspace shifted by a vector: $\mathbf{p} + U$ for some fixed $\mathbf{p}$ and subspace $U$. A line through $(0,0,1)$ in the direction $(1,1,1)$ is affine but not a subspace. ML loss-landscape geometry has both: the set of solutions to $W\mathbf{x} = \mathbf{b}$ is affine, the kernel $\{\mathbf{x} : W\mathbf{x} = \mathbf{0}\}$ is its parallel <em>linear</em> subspace through the origin.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Interactive: 2D Vector Playground</h2>
+    <p>Drag the heads of $\mathbf{u}$ and $\mathbf{v}$. The playground shows their sum, the linear combination $\alpha\mathbf{u} + \beta\mathbf{v}$, and the span (a line if $\mathbf{u}$ and $\mathbf{v}$ are parallel, the whole plane otherwise).</p>
+
+    <div class="control-panel">
+        <div class="control-row">
+            <label>&alpha; (scale of u)</label>
+            <input type="range" id="alpha" min="-3" max="3" step="0.05" value="1">
+            <span class="val" id="alpha-val">1.00</span>
+        </div>
+        <div class="control-row">
+            <label>&beta; (scale of v)</label>
+            <input type="range" id="beta" min="-3" max="3" step="0.05" value="1">
+            <span class="val" id="beta-val">1.00</span>
+        </div>
+        <div class="control-row">
+            <button class="btn" id="reset-vec">Reset vectors</button>
+            <button class="btn secondary" id="parallel">Make parallel (dependent)</button>
+            <span class="val" id="status">independent</span>
+        </div>
+    </div>
+
+    <div class="canvas-wrap">
+        <svg id="vec-svg" viewBox="0 0 600 420" width="600" height="420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="ah-u" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#a78bfa"/></marker>
+                <marker id="ah-v" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#34d399"/></marker>
+                <marker id="ah-w" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#fbbf24"/></marker>
+                <marker id="ah-s" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#f472b6"/></marker>
+            </defs>
+            <rect width="600" height="420" fill="#0d1117"/>
+            <g id="grid"></g>
+            <line id="span-line" x1="0" y1="0" x2="0" y2="0" stroke="#a78bfa" stroke-opacity="0.18" stroke-width="60" stroke-linecap="butt" style="display:none"/>
+            <line id="vec-u" x1="300" y1="210" x2="400" y2="210" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#ah-u)"/>
+            <line id="vec-v" x1="300" y1="210" x2="300" y2="110" stroke="#34d399" stroke-width="2.5" marker-end="url(#ah-v)"/>
+            <line id="vec-sum" x1="300" y1="210" x2="400" y2="110" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#ah-w)"/>
+            <line id="vec-comb" x1="300" y1="210" x2="400" y2="110" stroke="#f472b6" stroke-width="2.2" marker-end="url(#ah-s)"/>
+            <circle id="head-u" cx="400" cy="210" r="8" fill="rgba(167,139,250,0.45)" stroke="#a78bfa" style="cursor:grab"/>
+            <circle id="head-v" cx="300" cy="110" r="8" fill="rgba(52,211,153,0.45)" stroke="#34d399" style="cursor:grab"/>
+            <text x="408" y="210" fill="#a78bfa" font-family="JetBrains Mono" font-size="13">u</text>
+            <text x="305" y="100" fill="#34d399" font-family="JetBrains Mono" font-size="13">v</text>
+            <text x="412" y="118" fill="#fbbf24" font-family="JetBrains Mono" font-size="12">u+v</text>
+            <text id="label-comb" x="412" y="98" fill="#f472b6" font-family="JetBrains Mono" font-size="12">αu+βv</text>
+        </svg>
+    </div>
+
+    <div class="metric-grid">
+        <div class="metric"><div class="metric-label">u</div><div class="metric-value" id="m-u">(2.0, 0.0)</div></div>
+        <div class="metric"><div class="metric-label">v</div><div class="metric-value" id="m-v">(0.0, 2.0)</div></div>
+        <div class="metric"><div class="metric-label">αu+βv</div><div class="metric-value" id="m-comb">(2.0, 2.0)</div></div>
+        <div class="metric"><div class="metric-label">span</div><div class="metric-value" id="m-span">R&sup2;</div></div>
+    </div>
+
+    <script>
+    (function(){
+        var svg = document.getElementById('vec-svg');
+        var cx = 300, cy = 210, scale = 50; // 1 unit = 50 px
+        var u = {x: 2, y: 0};
+        var v = {x: 0, y: 2};
+        var alpha = 1, beta = 1;
+        var dragging = null;
+
+        // Draw grid
+        var g = document.getElementById('grid');
+        var gh = '';
+        for (var k = -6; k <= 6; k++) {
+            var px = cx + k*scale;
+            gh += '<line x1="'+px+'" y1="0" x2="'+px+'" y2="420" stroke="#21262d" stroke-width="0.5"/>';
+            var py = cy + k*scale;
+            gh += '<line x1="0" y1="'+py+'" x2="600" y2="'+py+'" stroke="#21262d" stroke-width="0.5"/>';
+        }
+        gh += '<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="420" stroke="#3a3a3a" stroke-width="1"/>';
+        gh += '<line x1="0" y1="'+cy+'" x2="600" y2="'+cy+'" stroke="#3a3a3a" stroke-width="1"/>';
+        g.innerHTML = gh;
+
+        function px(x) { return cx + x*scale; }
+        function py(y) { return cy - y*scale; }
+
+        function det(u, v) { return u.x * v.y - u.y * v.x; }
+
+        function render() {
+            document.getElementById('vec-u').setAttribute('x2', px(u.x));
+            document.getElementById('vec-u').setAttribute('y2', py(u.y));
+            document.getElementById('head-u').setAttribute('cx', px(u.x));
+            document.getElementById('head-u').setAttribute('cy', py(u.y));
+            document.getElementById('vec-v').setAttribute('x2', px(v.x));
+            document.getElementById('vec-v').setAttribute('y2', py(v.y));
+            document.getElementById('head-v').setAttribute('cx', px(v.x));
+            document.getElementById('head-v').setAttribute('cy', py(v.y));
+            document.getElementById('vec-sum').setAttribute('x2', px(u.x + v.x));
+            document.getElementById('vec-sum').setAttribute('y2', py(u.y + v.y));
+            var c = {x: alpha*u.x + beta*v.x, y: alpha*u.y + beta*v.y};
+            document.getElementById('vec-comb').setAttribute('x2', px(c.x));
+            document.getElementById('vec-comb').setAttribute('y2', py(c.y));
+            document.getElementById('label-comb').setAttribute('x', px(c.x)+8);
+            document.getElementById('label-comb').setAttribute('y', py(c.y)-6);
+
+            // Span: if u and v are parallel, draw a line through origin in their direction.
+            var d = det(u, v);
+            var spanLine = document.getElementById('span-line');
+            if (Math.abs(d) < 0.05 && (Math.abs(u.x)+Math.abs(u.y) > 0.05 || Math.abs(v.x)+Math.abs(v.y) > 0.05)) {
+                var dir = (Math.abs(u.x)+Math.abs(u.y) > 0.05) ? u : v;
+                var L = 12; // long enough
+                spanLine.setAttribute('x1', px(-L*dir.x));
+                spanLine.setAttribute('y1', py(-L*dir.y));
+                spanLine.setAttribute('x2', px(L*dir.x));
+                spanLine.setAttribute('y2', py(L*dir.y));
+                spanLine.setAttribute('stroke-width', 14);
+                spanLine.style.display = '';
+                document.getElementById('m-span').textContent = 'line';
+                document.getElementById('status').textContent = 'dependent';
+            } else {
+                spanLine.style.display = 'none';
+                document.getElementById('m-span').textContent = 'R²';
+                document.getElementById('status').textContent = 'independent';
+            }
+
+            document.getElementById('m-u').textContent = '('+u.x.toFixed(2)+', '+u.y.toFixed(2)+')';
+            document.getElementById('m-v').textContent = '('+v.x.toFixed(2)+', '+v.y.toFixed(2)+')';
+            document.getElementById('m-comb').textContent = '('+c.x.toFixed(2)+', '+c.y.toFixed(2)+')';
+        }
+
+        function svgPoint(evt) {
+            var pt = svg.createSVGPoint();
+            pt.x = evt.clientX; pt.y = evt.clientY;
+            var ctm = svg.getScreenCTM().inverse();
+            return pt.matrixTransform(ctm);
+        }
+        function startDrag(which) {
+            return function(e) { dragging = which; e.preventDefault(); };
+        }
+        document.getElementById('head-u').addEventListener('mousedown', startDrag('u'));
+        document.getElementById('head-v').addEventListener('mousedown', startDrag('v'));
+        document.getElementById('head-u').addEventListener('touchstart', startDrag('u'));
+        document.getElementById('head-v').addEventListener('touchstart', startDrag('v'));
+        function move(e) {
+            if (!dragging) return;
+            var ev = e.touches ? e.touches[0] : e;
+            var p = svgPoint(ev);
+            var nx = (p.x - cx) / scale;
+            var ny = -(p.y - cy) / scale;
+            nx = Math.round(nx*20)/20; ny = Math.round(ny*20)/20;
+            if (dragging === 'u') u = {x:nx, y:ny};
+            else v = {x:nx, y:ny};
+            render();
+            e.preventDefault();
+        }
+        function endDrag() { dragging = null; }
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchmove', move, {passive:false});
+        window.addEventListener('touchend', endDrag);
+
+        document.getElementById('alpha').addEventListener('input', function(){ alpha = parseFloat(this.value); document.getElementById('alpha-val').textContent = alpha.toFixed(2); render(); });
+        document.getElementById('beta').addEventListener('input', function(){ beta = parseFloat(this.value); document.getElementById('beta-val').textContent = beta.toFixed(2); render(); });
+        document.getElementById('reset-vec').addEventListener('click', function(){ u = {x:2,y:0}; v = {x:0,y:2}; render(); });
+        document.getElementById('parallel').addEventListener('click', function(){ v = {x: 1.5*u.x, y: 1.5*u.y}; render(); });
+        render();
+    })();
+    </script>
+
+    <p>The pink arrow is the linear combination $\alpha\mathbf{u} + \beta\mathbf{v}$. Sweep both sliders and notice how its tip can reach <em>any</em> point in the plane &mdash; that's a 2D span. Click "Make parallel" and notice how the span collapses to a single line (highlighted): now no setting of $\alpha, \beta$ can reach off-line points. This is what linear dependence looks like.</p>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>From R&sup2; to R<sup><i>d</i></sup>: the Embedding Picture</h2>
+    <p>The intuition you just built in 2D scales, with one important caveat &mdash; <em>most</em> properties of high-dimensional vectors are deeply counter-intuitive.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>What's the same</h4>
+            <ul>
+                <li>Addition and scaling work component-wise.</li>
+                <li>Span, basis, dimension, independence are defined identically.</li>
+                <li>Subspaces are still through the origin.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel r">
+            <h4>What's wildly different</h4>
+            <ul>
+                <li>Volumes concentrate near the surface of a $d$-ball: most of the mass of a unit ball in $\mathbb{R}^{4096}$ is in a thin shell.</li>
+                <li>Two random Gaussian vectors are almost <em>orthogonal</em> with overwhelming probability &mdash; not a 90° coincidence but a property of measure concentration.</li>
+                <li>Distances all converge: the ratio of largest to smallest pairwise distance among random points goes to 1.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>Why this matters for embeddings</h3>
+    <p>Modern LLM embedding spaces are 2k&ndash;16k dimensional. The "almost-orthogonal" phenomenon is a feature: it means a $d$-dimensional space has <em>vastly</em> more than $d$ approximately-orthogonal directions you can pack into it. Anthropic's <em>Toy Models of Superposition</em> (Elhage et al., 2022) and follow-up work show that LLMs exploit this to encode many more "features" than they have neurons by using nearly-orthogonal directions.</p>
+
+    <div class="callout">
+        <div class="callout-label">A back-of-envelope count</div>
+        <p>How many vectors can you pack into $\mathbb{R}^{4096}$ such that each pair makes an angle of at least 80°? In strict orthogonality you'd be limited to 4096. Allowing $\cos\theta \le 0.17$ (i.e. 80° apart) lets you pack <em>exponentially many</em> &mdash; the Johnson-Lindenstrauss bound says roughly $\exp(\Theta(\varepsilon^2 d))$ vectors. For $d = 4096$ and $\varepsilon = 0.17$ that's something like $10^{50}$. This is the slack that superposition exploits.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>Cheat Sheet</h2>
+    <ul>
+        <li>A <strong>vector space</strong> is a set with two operations (add, scale) satisfying eight axioms. The set $\mathbb{R}^n$ is the canonical example; matrices, polynomials, functions are others.</li>
+        <li>A <strong>linear combination</strong> is $\sum_i \alpha_i \mathbf{v}_i$. The <strong>span</strong> of vectors is the set of all linear combinations &mdash; always a subspace through the origin.</li>
+        <li>A set is <strong>linearly independent</strong> when no non-trivial combination gives zero. Equivalently: no vector is in the span of the others.</li>
+        <li>A <strong>basis</strong> is a linearly independent spanning set. Every basis of $V$ has the same size; that size is $\dim V$.</li>
+        <li>A <strong>subspace</strong> is a non-empty subset closed under addition and scaling. Lines and planes through 0 in $\mathbb{R}^3$, the range and null space of any linear map.</li>
+        <li>The <strong>change-of-basis</strong> from a basis $B$ to the standard basis is multiplication by the matrix $B$; the inverse direction is $B^{-1}$.</li>
+        <li>High-dimensional embedding spaces have far more "directions" than dimensions: random vectors are nearly orthogonal, and superposition exploits this.</li>
+    </ul>
+
+    <div class="callout">
+        <div class="callout-label">Read next</div>
+        <p>Deck <strong>02 &mdash; Matrices as Linear Maps</strong> turns the static "tuple of numbers" picture into a moving one: a matrix is the rule that takes a vector to another vector, and matmul is composition of rules.</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Linear_Algebra">Linear Algebra for AI / ML</a> series. Sources: Axler, <em>Linear Algebra Done Right</em> (3rd ed., 2015); Strang, <em>Introduction to Linear Algebra</em> (5th ed.); Elhage et al., <em>Toy Models of Superposition</em> (Anthropic, 2022); Johnson &amp; Lindenstrauss, "Extensions of Lipschitz mappings into a Hilbert space" (1984).</p>
+</footer>
+
+</body>
+</html>
